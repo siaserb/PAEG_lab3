@@ -48,4 +48,16 @@ def choose_candidate(candidates):
             print('Ви ввели невірний номер, спробуйте ще раз!')
             continue
         else:
-            return candidate
+            return int(candidate)
+
+
+def write_to_file(filename, data1, data2=None):
+    if filename == 'reg_nums.txt':
+        open(filename, 'w').close()
+    with open(filename, 'a') as f:
+        if data2 is not None:
+            f.write(str(data1) + ' ' + str(data2) + '\n')
+        else:
+            f.write(str(data1) + '\n')
+
+

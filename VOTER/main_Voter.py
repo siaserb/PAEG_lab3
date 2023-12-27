@@ -1,10 +1,10 @@
-from elgamal import *
-from voters_functions import *
-import random
+import elgamal
 import pickle
+import random
 from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from cryptography.hazmat.primitives.asymmetric import dsa, utils
-from cryptography.hazmat.primitives._serialization import Encoding, PublicFormat
+from voters_functions import *
 
 voters = receive_data(5000, 'Список виборців:')
 candidates = receive_data(5001, 'Список кандидатів:')
@@ -12,27 +12,28 @@ candidates = receive_data(5001, 'Список кандидатів:')
 name = check_voter(voters)
 send_data(name, 5002)
 
-reg_num = receive_data(5003, 'Реєстраційний номер:')
+reg_num = int(receive_data(5003, 'Реєстраційний номер:'))
 
 voter_id = random.randint(10**5, 10**6-1)
 
 candidate = choose_candidate(candidates)
 
 message = (reg_num, voter_id, candidate)
+print('Повідомлення:', message)
 
 # ------------ELGAMAL-----------------
-b_message = str(message).encode('utf-8')
-# Generate keys
-key_pair_elgamal = newkeys(128)
-public_key_elgamal = key_pair_elgamal['public_key']
-private_key_elgamal = key_pair_elgamal['private_key']
+# Генеруємо пару ключів
+keys = elgamal.generate_keys()
 
-# Encrypt the message
-encrypted_text_elgamal = encrypt(b_message, public_key_elgamal)
-print(f'encrypted_text: {encrypted_text_elgamal}')
-send_data(str(encrypted_text_elgamal), 5005)
-send_data(str(private_key_elgamal), 5006)
+# Шифруємо повідомлення
+cipher = elgamal.encrypt(keys['publicKey'], str(message))
 
+# Перетворюємо ключі в рядки
+private_key_str = "{} {} {}".format(keys['privateKey'].p, keys['privateKey'].g, keys['privateKey'].x)
+
+# Надсилаємо зашифроване повідомлення та приватний ключ
+send_data(str(cipher), 5005)
+send_data(private_key_str, 5006)
 
 # ------------DSA-----------------
 # Генерація приватного ключа
@@ -51,3 +52,6 @@ public_key_dsa = private_key_dsa.public_key()
 # Надсилаємо підпис, повідомлення та публічний ключ
 send_data(signature, 5007)
 send_data(public_key_dsa.public_bytes(Encoding.PEM, PublicFormat.SubjectPublicKeyInfo).decode(), 5008)
+
+write_to_file('voted_voters.txt', name)
+

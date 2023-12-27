@@ -7,8 +7,9 @@ def send_data(data, port):
     s.send(data.encode())
     s.close()
 
+
 # Отримання даних
-def receive_data(port, comment):
+def receive_data(port, comment=None):
     s = socket.socket()
     s.bind(('127.0.0.1', port))
     s.listen(1)
@@ -42,6 +43,7 @@ def receive_file(filename, port):
             f.write(data)
     c.close()
 
+
 def check_voter_reg_num(reg_num: int) -> bool:
     with open("reg_nums.txt", 'r') as file:
         return str(reg_num) in [line.strip() for line in file.readlines()]
@@ -71,13 +73,12 @@ def add_vote_to_result(voter_id, candidate):
 
 
 def parse_line(line):
-
     parts = line.strip('()\n').split(', ')
     numbers = [int(part) for part in parts]
     return numbers
 
-def count_votes(filename, candidates):
 
+def count_votes(filename, candidates):
     vote_counts = {int(candidate): 0 for candidate in candidates}
 
     with open(filename, 'r') as file:
